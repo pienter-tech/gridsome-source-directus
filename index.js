@@ -6,10 +6,11 @@ class DirectusSource {
     return {
       url: '',
       project: '_',
-      email: null,
-      password: null,
-      token: null,
+      email: '',
+      password: '',
+      token: '',
       camelCase: true,
+      routes: {},
     };
   }
 
@@ -21,6 +22,14 @@ class DirectusSource {
   async login() {
     console.log('Directus 1. Login in');
     const { url, project, email, password, token } = this.options;
+
+    if (!(url && (token || (email && password)))) {
+      console.error(
+        '### Woops could not log in, please provide credentials ###'
+      );
+      throw 'Directus failed: no credentials found.';
+    }
+
     const directusOptions = {
       url,
       project,
@@ -151,9 +160,15 @@ class DirectusSource {
     });
 
     collections.forEach(collection => {
-      contentTypes[collection.collection] = store.addContentType({
+      const contentType = {
         typeName: collection.collection,
-      });
+      };
+
+      if (this.options.routes.hasOwnProperty(collection.collection)) {
+        contentType.route = this.options.routes[collection.collection];
+      }
+
+      contentTypes[collection.collection] = store.addContentType(contentType);
       collection.fileFields.forEach(fileField => {
         contentTypes[collection.collection].addReference(
           fileField.field,
