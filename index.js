@@ -90,8 +90,9 @@ class DirectusSource {
     };
   }
 
-  getFileFields = ({ fields }) =>
-    Object.values(fields).filter(field => field.type === 'file');
+  static getFileFields({ fields }) {
+    return Object.values(fields).filter(field => field.type === 'file');
+  }
 
   async getItems(collection) {
     const items = await this.directusClient.getItems(collection.collection, {
@@ -116,13 +117,13 @@ class DirectusSource {
         );
         const items = await this.getItems(collections[index]);
         collections[index]['items'] = items;
-        collections[index]['fileFields'] = this.getFileFields(
+        collections[index]['fileFields'] = DirectusSource.getFileFields(
           collections[index]
         );
 
         if (this.options.debug) {
           console.log(items);
-          console.log(this.getFileFields(collections[index]));
+          console.log(DirectusSource.getFileFields(collections[index]));
         }
       } catch (e) {
         console.error(
