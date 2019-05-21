@@ -1,5 +1,5 @@
 {
-  "version": "0.0.1",
+  "version": "0.0.2",
   "name": "@pienter/gridsome-source-directus",
   "description": "Directus source for Gridsome",
   "main": "index.js",
