@@ -11,6 +11,7 @@ class DirectusSource {
       token: '',
       camelCase: true,
       routes: {},
+      debug: false,
     };
   }
 
@@ -89,6 +90,9 @@ class DirectusSource {
     };
   }
 
+  getFileFields = ({ fields }) =>
+    Object.values(fields).filter(field => field.type === 'file');
+
   async getItems(collection) {
     const items = await this.directusClient.getItems(collection.collection, {
       limit: '-1',
@@ -100,6 +104,10 @@ class DirectusSource {
     console.log('Directus 2. Getting collections');
     const collections = await this.getCollections();
     for (let index = 0; index < collections.length; index++) {
+      if (this.options.debug) {
+        console.log(collections[index]);
+      }
+
       try {
         console.log(
           `Directus 2.${index} Getting items for ${
@@ -108,7 +116,14 @@ class DirectusSource {
         );
         const items = await this.getItems(collections[index]);
         collections[index]['items'] = items;
-        collections[index]['fileFields'] = getFileFields(collections[index]);
+        collections[index]['fileFields'] = this.getFileFields(
+          collections[index]
+        );
+
+        if (this.options.debug) {
+          console.log(items);
+          console.log(this.getFileFields(collections[index]));
+        }
       } catch (e) {
         console.error(
           `### Could not get items for ${collections[index].collection} ###`
@@ -126,6 +141,11 @@ class DirectusSource {
       const relationsData = await this.directusClient.getRelations({
         filter: { collection_many: { nlike: 'directus_' } },
       });
+
+      if (this.options.debug) {
+        console.log(relationsData.data);
+      }
+
       return relationsData.data;
     } catch (e) {
       console.error('### Could not get relations ###');
@@ -138,6 +158,11 @@ class DirectusSource {
     try {
       console.log('Directus 4. Getting files');
       const filesData = await this.directusClient.get('files', { limit: '-1' });
+
+      if (this.options.debug) {
+        console.log(filesData.data);
+      }
+
       return filesData.data;
     } catch (e) {
       console.error('### Could not get files ###');
@@ -195,10 +220,6 @@ class DirectusSource {
       });
     });
   }
-}
-
-function getFileFields({ fields }) {
-  return Object.values(fields).filter(field => field.type === 'file');
 }
 
 module.exports = DirectusSource;
