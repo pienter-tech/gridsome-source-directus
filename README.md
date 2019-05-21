@@ -1,6 +1,6 @@
 # gridsome-source-directus
 
-I created this script for personal use before `peXed` published his `gridsome-source-directus`.
+I created this script for personal use before [peXed](https://github.com/peXed) published his [gridsome-source-directus](https://github.com/peXed/gridsome-source-directus).
 Because it has a slightly different approach I decided to publish this package anyway.
 
 ## Features
