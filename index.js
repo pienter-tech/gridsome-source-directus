@@ -63,8 +63,8 @@ class DirectusSource {
 
   transformItem(item) {
     const camelItem = {};
-    const title = item.title ? item.title : item.id;
-    const id = item.id;
+    const title = item.title ? item.title : String(item.id);
+    const id = String(item.id);
     const slug = item.slug ? item.slug : null;
     const content = item.content ? item.content : null;
     const date = item.created_on
