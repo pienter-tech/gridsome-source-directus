@@ -62,10 +62,10 @@ class DirectusSource {
     );
   }
 
-  transformItem(item) {
+  transformItem(item, idToString = true) {
     const camelItem = {};
     const title = item.title ? item.title : String(item.id);
-    const id = String(item.id);
+    const id = idToString ? String(item.id) : item.id;
     const slug = item.slug ? item.slug : null;
     const content = item.content ? item.content : null;
     const date = item.created_on
@@ -211,7 +211,7 @@ class DirectusSource {
     });
 
     files.forEach(file => {
-      const fileItem = this.transformItem(file);
+      const fileItem = this.transformItem(file, false);
       contentTypes['Files'].addNode(fileItem);
     });
 
