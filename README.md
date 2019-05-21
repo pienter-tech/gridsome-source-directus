@@ -22,9 +22,6 @@ Add the plugin to your gridsome.config.js file.
 
 ### Options:
 
-- url (required): Directus API root url.
-- project (optional | '\_'): Directus project
-
 | Name      | Required | Type    | Default | Description                                                                                                                                                                                                |
 | --------- | -------- | ------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | url       | true     | string  | /       | Directus API root url ([see here for more info](https://docs.directus.io/api/reference.html#project-prefix))                                                                                               |
