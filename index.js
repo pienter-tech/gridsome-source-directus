@@ -1,5 +1,5 @@
 const DirectusSDK = require('@directus/sdk-js');
-const camelCase = require('camelcase');
+const camelCaseKeys = require('camelcase-keys');
 
 class DirectusSource {
   static defaultOptions() {
@@ -63,7 +63,6 @@ class DirectusSource {
   }
 
   transformItem(item, idToString = true) {
-    const camelItem = {};
     const title = item.title ? item.title : String(item.id);
     const id = idToString ? String(item.id) : item.id;
     const slug = item.slug ? item.slug : null;
@@ -74,19 +73,13 @@ class DirectusSource {
       ? item.updated_on
       : null;
 
-    if (this.options.camelCase) {
-      Object.keys(item).forEach(key => {
-        camelItem[camelCase(key)] = item[key];
-      });
-    }
-
     return {
       title,
       id,
       slug,
       content,
       date,
-      fields: this.options.camelCase ? camelItem : item,
+      fields: this.options.camelCase ? camelCaseKeys(item) : item,
     };
   }
 
