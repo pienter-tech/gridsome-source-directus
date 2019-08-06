@@ -1,4 +1,5 @@
 const DirectusSDK = require('@directus/sdk-js');
+const camelCase = require('camelcase');
 const camelCaseKeys = require('camelcase-keys');
 
 class DirectusSource {
