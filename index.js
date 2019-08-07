@@ -11,6 +11,8 @@ class DirectusSource {
       password: '',
       token: '',
       camelCase: true,
+      shallowCamelCase: false,
+      pascalTypes: true,
       routes: {},
       debug: false,
     };
@@ -23,7 +25,13 @@ class DirectusSource {
 
   async login() {
     console.log('Directus 1. Login in');
-    const { url, project, email, password, token } = this.options;
+    const {
+      url,
+      project,
+      email,
+      password,
+      token
+    } = this.options;
 
     if (!(url && (token || (email && password)))) {
       console.error(
@@ -60,36 +68,42 @@ class DirectusSource {
     const collections = await this.directusClient.getCollections();
     return collections.data.filter(
       collection => !collection.collection.startsWith('directus_')
-    );
+    ).map(collection => {
+      collection.originalCollection = collection.collection;
+      if (this.options.pascalTypes) {
+        collection.collection = camelCase(collection.collection, {
+          pascalCase: true
+        });
+      }
+      return collection;
+    });
   }
 
   transformItem(item, idToString = true) {
-    const title = item.title ? item.title : String(item.id);
-    const id = idToString ? String(item.id) : item.id;
-    const slug = item.slug ? item.slug : null;
-    const content = item.content ? item.content : null;
-    const date = item.created_on
-      ? item.created_on
-      : item.updated_on
-      ? item.updated_on
-      : null;
+    const gridsomeFields = {
+      id: idToString ? String(item.id) : item.id
+    }
+
+    const _item = this.options.camelCase ?
+      camelCaseKeys(item, {
+        deep: !this.options.shallowCamelCase
+      }) :
+      item;
 
     return {
-      title,
-      id,
-      slug,
-      content,
-      date,
-      fields: this.options.camelCase ? camelCaseKeys(item) : item,
-    };
+      ..._item,
+      ...gridsomeFields
+    }
   }
 
-  static getFileFields({ fields }) {
+  static getFileFields({
+    fields
+  }) {
     return Object.values(fields).filter(field => field.type === 'file');
   }
 
   async getItems(collection) {
-    const items = await this.directusClient.getItems(collection.collection, {
+    const items = await this.directusClient.getItems(collection.originalCollection, {
       limit: '-1',
     });
     return items.data.map(item => this.transformItem(item));
@@ -130,18 +144,41 @@ class DirectusSource {
     return collections;
   }
 
+  transformRelation(relation) {
+    const changes = {
+      field_many: !!relation.field_many ? (this.options.camelCase ? camelCase(relation.field_many) : relation.field_many) : 'id',
+    };
+    if (this.options.pascalTypes) {
+      changes.collection_many = camelCase(relation.collection_many, {
+        pascalCase: true
+      });
+      changes.collection_one = camelCase(relation.collection_one, {
+        pascalCase: true
+      });
+    }
+
+    return {
+      ...relation,
+      ...changes
+    }
+  }
+
   async getRelations() {
     try {
       console.log('Directus 3. Getting relations');
       const relationsData = await this.directusClient.getRelations({
-        filter: { collection_many: { nlike: 'directus_' } },
+        filter: {
+          collection_many: {
+            nlike: 'directus_'
+          }
+        },
       });
 
       if (this.options.debug) {
         console.log(relationsData.data);
       }
 
-      return relationsData.data;
+      return relationsData.data.map(relation => this.transformRelation(relation));
     } catch (e) {
       console.error('### Could not get relations ###');
       console.error(e);
@@ -152,7 +189,9 @@ class DirectusSource {
   async getAllFiles() {
     try {
       console.log('Directus 4. Getting files');
-      const filesData = await this.directusClient.get('files', { limit: '-1' });
+      const filesData = await this.directusClient.get('files', {
+        limit: '-1'
+      });
 
       if (this.options.debug) {
         console.log(filesData.data);
