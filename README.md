@@ -7,6 +7,8 @@ Because it has a slightly different approach I decided to publish this package a
 
 ## Changes
 
+- Release 1.0.1
+  - Renamed addContentType to addCollection for compatibility. If you use a pre 0.7.\* version of gridsome use 1.0.0
 - Release 1.0.0
   - Automaticaly converts table names to Pascal Case, this results in a cleaner schema. But all your queries will break after updating. Set `pascalTypes` to `false` if you do not want this.
   - Now also converts nested objects to camel case. This can also break your queries. Set `shallowCamelCase` to `true` if you do not want this.
@@ -41,6 +43,7 @@ Add the plugin to your gridsome.config.js file.
 | shallowCamelCase | false    | boolean | `false` | Do only a shalow transformation to camel case. Use this after updating this package                                                                                                                        |
 | pascalTypes      | false    | boolean | `true`  | Converts table names to pascal case                                                                                                                                                                        |
 | routes           | false    | object  | `{}`    | Add route option to content type, object where `key` is the `collection` and the `value` is the `route` ([see here for more info](https://gridsome.org/docs/data-store-api#add-a-content-type-collection)) |
+
 ### Example config:
 
 ```js
