@@ -25,13 +25,7 @@ class DirectusSource {
 
   async login() {
     console.log('Directus 1. Login in');
-    const {
-      url,
-      project,
-      email,
-      password,
-      token
-    } = this.options;
+    const { url, project, email, password, token } = this.options;
 
     if (!(url && (token || (email && password)))) {
       console.error(
@@ -66,46 +60,47 @@ class DirectusSource {
 
   async getCollections() {
     const collections = await this.directusClient.getCollections();
-    return collections.data.filter(
-      collection => !collection.collection.startsWith('directus_')
-    ).map(collection => {
-      collection.originalCollection = collection.collection;
-      if (this.options.pascalTypes) {
-        collection.collection = camelCase(collection.collection, {
-          pascalCase: true
-        });
-      }
-      return collection;
-    });
+    return collections.data
+      .filter(collection => !collection.collection.startsWith('directus_'))
+      .map(collection => {
+        collection.originalCollection = collection.collection;
+        if (this.options.pascalTypes) {
+          collection.collection = camelCase(collection.collection, {
+            pascalCase: true,
+          });
+        }
+        return collection;
+      });
   }
 
   transformItem(item, idToString = true) {
     const gridsomeFields = {
-      id: idToString ? String(item.id) : item.id
-    }
+      id: idToString ? String(item.id) : item.id,
+    };
 
-    const _item = this.options.camelCase ?
-      camelCaseKeys(item, {
-        deep: !this.options.shallowCamelCase
-      }) :
-      item;
+    const _item = this.options.camelCase
+      ? camelCaseKeys(item, {
+          deep: !this.options.shallowCamelCase,
+        })
+      : item;
 
     return {
       ..._item,
-      ...gridsomeFields
-    }
+      ...gridsomeFields,
+    };
   }
 
-  static getFileFields({
-    fields
-  }) {
+  static getFileFields({ fields }) {
     return Object.values(fields).filter(field => field.type === 'file');
   }
 
   async getItems(collection) {
-    const items = await this.directusClient.getItems(collection.originalCollection, {
-      limit: '-1',
-    });
+    const items = await this.directusClient.getItems(
+      collection.originalCollection,
+      {
+        limit: '-1',
+      }
+    );
     return items.data.map(item => this.transformItem(item));
   }
 
@@ -119,9 +114,7 @@ class DirectusSource {
 
       try {
         console.log(
-          `Directus 2.${index} Getting items for ${
-            collections[index].collection
-          }`
+          `Directus 2.${index} Getting items for ${collections[index].collection}`
         );
         const items = await this.getItems(collections[index]);
         collections[index]['items'] = items;
@@ -146,21 +139,25 @@ class DirectusSource {
 
   transformRelation(relation) {
     const changes = {
-      field_many: !!relation.field_many ? (this.options.camelCase ? camelCase(relation.field_many) : relation.field_many) : 'id',
+      field_many: relation.field_many
+        ? this.options.camelCase
+          ? camelCase(relation.field_many)
+          : relation.field_many
+        : 'id',
     };
     if (this.options.pascalTypes) {
       changes.collection_many = camelCase(relation.collection_many, {
-        pascalCase: true
+        pascalCase: true,
       });
       changes.collection_one = camelCase(relation.collection_one, {
-        pascalCase: true
+        pascalCase: true,
       });
     }
 
     return {
       ...relation,
-      ...changes
-    }
+      ...changes,
+    };
   }
 
   async getRelations() {
@@ -169,8 +166,8 @@ class DirectusSource {
       const relationsData = await this.directusClient.getRelations({
         filter: {
           collection_many: {
-            nlike: 'directus_'
-          }
+            nlike: 'directus_',
+          },
         },
       });
 
@@ -178,7 +175,9 @@ class DirectusSource {
         console.log(relationsData.data);
       }
 
-      return relationsData.data.map(relation => this.transformRelation(relation));
+      return relationsData.data.map(relation =>
+        this.transformRelation(relation)
+      );
     } catch (e) {
       console.error('### Could not get relations ###');
       console.error(e);
@@ -190,7 +189,7 @@ class DirectusSource {
     try {
       console.log('Directus 4. Getting files');
       const filesData = await this.directusClient.get('files', {
-        limit: '-1'
+        limit: '-1',
       });
 
       if (this.options.debug) {
@@ -214,7 +213,7 @@ class DirectusSource {
     let contentTypes = {};
 
     console.log('Directus 5. Setting up GraphQL Schema');
-    contentTypes['Files'] = store.addContentType({
+    contentTypes['Files'] = store.addCollection({
       typeName: 'Files',
     });
 
@@ -227,7 +226,7 @@ class DirectusSource {
         contentType.route = this.options.routes[collection.collection];
       }
 
-      contentTypes[collection.collection] = store.addContentType(contentType);
+      contentTypes[collection.collection] = store.addCollection(contentType);
       collection.fileFields.forEach(fileField => {
         contentTypes[collection.collection].addReference(
           fileField.field,
