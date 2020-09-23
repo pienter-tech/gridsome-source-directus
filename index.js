@@ -252,6 +252,8 @@ class DirectusSource {
         contentTypes[collection.collection].addNode(item);
       });
     });
+
+    this.directusClient.logout();
   }
 }
 
