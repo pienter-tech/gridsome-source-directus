@@ -18,7 +18,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@directus/sdk-js": "^5.3.4",
+    "@directus/sdk-js": "^9.0.0-rc.53",
     "axios": "^0.18.1",
     "camelcase": "^5.3.1",
     "camelcase-keys": "^6.0.1"
